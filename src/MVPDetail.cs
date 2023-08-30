@@ -1,0 +1,46 @@
+﻿using Ganss.Excel;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MVPSpider
+{
+    public class MVPDetail
+    {
+        [Column(8)]
+        public string Url { get; set; }
+        [Column(9)]
+        public string PhotoUrl { get; set; }
+        //[Column(6)]
+        //public string Country { get; set; }
+        [Column(7)]
+        public string City { get; set; }
+        [Column(3)]
+        public string Category { get; set; }
+        [Column(5)]
+        [Column("Number of MVP Awards")]
+        public string NumberOfMVP { get; set; }
+        [Column(4)]
+        public string SinceYear { get; set; }
+        [Column(14)]
+        public string Biography { get; set; }
+
+        [Column(1)]
+        public string Name_En { get; set; }
+
+        [Column(2)]
+        public string Name_Cn { get; set; }
+        [Column(6)]
+        public string Email { get; set; }
+        [Column(10)]
+        public string Social_Linkedin { get; set; }
+        [Column(11)]
+        public string Social_Twitter { get; set; }
+        [Column(12)]
+        public string Social_Github { get; set; }
+        [Column(13)]
+        public string Social_Blog { get; set; }
+    }
+}
