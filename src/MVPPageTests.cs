@@ -19,34 +19,41 @@ public class MVPPageTests : PageTest
         await Page.GotoAsync("https://mvp.microsoft.com/en-us/PublicProfile/5004128?fullName=Liang%20Liu");
         await Expect(Page).ToHaveTitleAsync(new Regex("Liang"));
         //get mvp category and year
-        var content = await Page.Locator(".infoContent").AllTextContentsAsync();
-        Assert.That(content[0], Is.EqualTo("Developer Technologies"));
-        Assert.That(content[1], Is.EqualTo("2021"));
-        Assert.That(content[2], Is.EqualTo("3"));
-
-        //get contact and language info
-        var extraInfo = await Page.Locator(".otherContent").AllTextContentsAsync();
-        Assert.That(extraInfo[0].Replace("\n", "").Trim(), Is.EqualTo("Email:                            liuliang79@live.com"));
-        Assert.That(extraInfo[1].Replace("\n", "").Trim(), Is.EqualTo("Chinese - Simplified"));
-
+        var content2 = await Page.Locator(".ktbFdU .css-124").AllTextContentsAsync();
         //get location
-        var country = await Page.Locator(".country").TextContentAsync();
-        Assert.That(country, Is.EqualTo("China"));
-        var state = await Page.Locator(".state").TextContentAsync();
-        Assert.That(state, Is.EqualTo("Beijing"));
+        Assert.That(content2[1], Is.EqualTo("China"));
+        Assert.That(content2[3], Is.EqualTo("3 years in the program"));
+
+        var content = await Page.Locator(".sc-dlfnbm.bcaJjD .sc-gsTCUz.bhdLno").AllTextContentsAsync();
+
+        Assert.That(content[5], Is.EqualTo("Developer Technologies"));
+        Assert.That(content[7], Is.EqualTo(".NET"));
 
         //get biography
-        var bio = await Page.Locator(".biography .content").TextContentAsync();
-        Assert.IsTrue(bio.Replace("\n", "").Trim().Length > 0);
-
+        var content3 = await Page.Locator(".sc-dlfnbm.sc-jSgupP.bcaJjD span").AllTextContentsAsync();
+        var bio = content3[1];
+        Assert.IsTrue(bio.Trim().StartsWith("Great passion for software development"));
         //recent activities
-        var activities = await Page.Locator(".raListTable tr").AllAsync();
-        Assert.IsTrue(activities.Count > 0);
+        //var activities = await Page.Locator(".raListTable tr").AllAsync();
+        //Assert.IsTrue(activities.Count > 0);
     }
     [Test]
-    public async Task GetMVPSinglePageContent_XinyueTang()
+    public async Task GetMVPSinglePageContent_CyrusWong()
     {
-        await Page.GotoAsync("https://mvp.microsoft.com/en-us/PublicProfile/5001884?fullName=Xinyue%20Tang");
+        //https://mavenapi-prod.azurewebsites.net/api/mvp/UserProfiles/public/86da86ff-8786-ed11-aad1-000d3a197333
+        //https://mavenapi-prod.azurewebsites.net/api/Contributions/HighImpact/86da86ff-8786-ed11-aad1-000d3a197333/MVP
+        //https://mavenapi-prod.azurewebsites.net/api/Events/HighImpact/86da86ff-8786-ed11-aad1-000d3a197333/MVP
+        //https://mvp.microsoft.com/Locales/Activities.json
+        //https://mvp.microsoft.com/Locales/UserProfile.json
+        //https://mvp.microsoft.com/Locales/CountryOrRegion.json
+
+        await Page.GotoAsync("https://mvp.microsoft.com/en-US/MVP/profile/86da86ff-8786-ed11-aad1-000d3a197333");
+        await Task.Delay(500);
+        //get location
+        var content2 = await Page.Locator(".ms-Stack").AllTextContentsAsync();
+
+        Assert.That(content2[1], Is.EqualTo("Hong Kong SAR"));
+        Assert.That(content2[3], Is.EqualTo("1 year in the program"));
         //get contact and language info
         var socialLinks = await Page.Locator(".onlineIdentityRow .otherContent a").AllAsync();
         var links = new List<string>();
@@ -67,65 +74,47 @@ public class MVPPageTests : PageTest
         await Page.GotoAsync("https://mvp.microsoft.com/en-us/PublicProfile/5003987?fullName=James%20%20Yeung");
         await Expect(Page).ToHaveTitleAsync(new Regex("James Yeung"));
 
-        var images = await Page.Locator(".photoPanel img").AllAsync();
-        var imgUrl = await images[2].GetAttributeAsync("src");
-        var name = (await images[2].GetAttributeAsync("alt")).Replace(" photo","");
+        var images = await Page.Locator(".ms-Persona-image img").AllAsync();
+        var imgUrl = await images[0].GetAttributeAsync("src");
+        var name = await images[0].GetAttributeAsync("alt");
         Assert.IsNotEmpty(imgUrl);
-        Assert.That(name, Is.EqualTo("James Yeung (杨舜杰)"));
-        //get mvp category and year
-        var content = await Page.Locator(".infoContent").AllTextContentsAsync();
-        Assert.That(content[0], Is.EqualTo("Developer Technologies"));
-        Assert.That(content[1], Is.EqualTo("2020"));
-        Assert.That(content[2], Is.EqualTo("3"));
+        Assert.That(name, Is.EqualTo("James Yeung"));
 
-        //get contact and language info
-        var extraInfo = await Page.Locator(".otherRow").AllAsync();
-        var otherInfo = new Dictionary<string, string>();
-        foreach (var info in extraInfo)
-        {
-            var category = await info.Locator(".otherCatalog").TextContentAsync();
-            var detail = await info.Locator(".otherContent").InnerHTMLAsync();
-            otherInfo.Add(category.Trim(), detail.Trim());
-        }
-        Assert.That(otherInfo.Count, Is.EqualTo(3));
+        await Page.GetByLabel("Read more").ClickAsync();
+        //get mvp category and year
+        var content = await Page.Locator(".sc-dlfnbm.bcaJjD .sc-gsTCUz.bhdLno").AllTextContentsAsync();
+
+        Assert.That(content[5], Is.EqualTo("Developer Technologies"));
+        Assert.That(content[7], Is.EqualTo("GitHub & Azure DevOps, .NET"));
+        //get language info
+        Assert.That(content[9], Is.EqualTo("Chinese (Simplified), English"));
+
         //get location
-        var country = await Page.Locator(".country").TextContentAsync();
-        Assert.That(country, Is.EqualTo("China"));
-        var state = await Page.Locator(".state").TextContentAsync();
-        Assert.That(state, Is.EqualTo("Shanghai"));
+        var content2 = await Page.Locator(".ktbFdU .css-124").AllTextContentsAsync();
+
+        Assert.That(content2[1], Is.EqualTo("China"));
+        Assert.That(content2[3], Is.EqualTo("3 years in the program"));
+        //var state = await Page.Locator(".state").TextContentAsync();
+        //Assert.That(state, Is.EqualTo("Shanghai"));
 
         //get biography
-        var bio = await Page.Locator(".biography .content").TextContentAsync();
-        Assert.IsTrue(bio.Replace("\n", "").Trim().Length > 0);
+        var content3 = await Page.Locator(".sc-dlfnbm.sc-jSgupP.bcaJjD span").AllTextContentsAsync();
+        var bio = content3[1];
+        Assert.IsTrue(bio.Trim().StartsWith("I am the author of Ant Design Blazor"));
 
+        //get contact and language info
+        var buttons = await Page.Locator(".sc-dacFzL.fIUiIW button img").AllAsync();
+        var otherInfo = new Dictionary<string, string>();
+        foreach (var info in buttons)
+        {
+            var link = await info.GetAttributeAsync("title");
+            var mediaName = await info.GetAttributeAsync("alt");
+            otherInfo.Add(mediaName.Trim(), link.Trim());
+        }
+        Assert.That(otherInfo.Count, Is.EqualTo(1));
         //recent activities
-        var activities = await Page.Locator(".raListTable tr").AllAsync();
-        Assert.IsTrue(activities.Count > 0);
-    }
-    [Test]
-    public async Task GetMVPCount_China()
-    {
-        await Page.GotoAsync("https://mvp.microsoft.com/en-us/MvpSearch?lo=China&sc=e");
-        var total = await Page.Locator(".resultcount").TextContentAsync();
-        var numStr = total.Replace("(", "").Replace(")", "");
-        Assert.That(Int32.Parse(numStr), Is.EqualTo(138));
-    }
-    [Test]
-    public async Task GetMVPCount_Taiwan()
-    {
-        await Page.GotoAsync("https://mvp.microsoft.com/en-us/MvpSearch?lo=Taiwan&sc=e");
-        var total = await Page.Locator(".resultcount").TextContentAsync();
-        var numStr = total.Replace("(", "").Replace(")", "");
-        Assert.That(Int32.Parse(numStr),Is.EqualTo(40));
-    }
-    [Test]
-    public async Task GetMVPCount_Global()
-    {
-        //global mvp count
-        await Page.GotoAsync("https://mvp.microsoft.com/en-us/MvpSearch?kw=&x=2&y=11");
-        var total = await Page.Locator(".resultcount").TextContentAsync();
-        var numStr = total.Replace("(", "").Replace(")", "");
-        Assert.That(Int32.Parse(numStr),Is.EqualTo(3000));
+        //var activities = await Page.Locator(".raListTable tr").AllAsync();
+        //Assert.IsTrue(activities.Count > 0);
     }
     [Test]
     public async Task GetMVPDetailListAndSaveToExcel_Taiwan()
