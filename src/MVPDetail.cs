@@ -13,10 +13,10 @@ namespace MVPSpider
         public string Url { get; set; }
         [Column(9)]
         public string PhotoUrl { get; set; }
-        //[Column(6)]
-        //public string Country { get; set; }
         [Column(3)]
         public string Category { get; set; }
+        [Column(4)]
+        public string TechFocus { get; set; }
         [Column(5)]
         [Column("Year in Program")]
         public string YearInProgram { get; set; }

@@ -266,6 +266,7 @@ namespace MVPSpider
             mvpdetail.PhotoUrl = node?.Get("profilePictureUrl")?.GetString();
 
             mvpdetail.Category = string.Join(",", node?.Get("awardCategory")?.EnumerateArray().Select(x=>x.GetString()).ToArray());
+            mvpdetail.TechFocus = string.Join(",", node?.Get("technologyFocusArea")?.EnumerateArray().Select(x => x.GetString()).ToArray());
             mvpdetail.YearInProgram = node?.Get("yearsInProgram")?.GetInt32().ToString();
 
             var titleName=node?.Get("titleName")?.GetString();
