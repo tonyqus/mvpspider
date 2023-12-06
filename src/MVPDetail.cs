@@ -15,15 +15,11 @@ namespace MVPSpider
         public string PhotoUrl { get; set; }
         //[Column(6)]
         //public string Country { get; set; }
-        [Column(7)]
-        public string City { get; set; }
         [Column(3)]
         public string Category { get; set; }
         [Column(5)]
-        [Column("Number of MVP Awards")]
-        public string NumberOfMVP { get; set; }
-        [Column(4)]
-        public string SinceYear { get; set; }
+        [Column("Year in Program")]
+        public string YearInProgram { get; set; }
         [Column(14)]
         public string Biography { get; set; }
 
@@ -33,14 +29,21 @@ namespace MVPSpider
         [Column(2)]
         public string Name_Cn { get; set; }
         [Column(6)]
-        public string Email { get; set; }
+        public string Gender { get; set; }
         [Column(10)]
         public string Social_Linkedin { get; set; }
         [Column(11)]
         public string Social_Twitter { get; set; }
         [Column(12)]
         public string Social_Github { get; set; }
-        [Column(13)]
+        [Column(15)]
         public string Social_Blog { get; set; }
+        [Column(13)]
+        public string Social_Facebook { get; set; }
+        [Column(14)]
+        public string Social_Youtube { get; set; }
+        [Column(16)]
+        public string Social_Bilibili { get; set; }
+
     }
 }
