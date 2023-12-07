@@ -240,13 +240,33 @@ namespace MVPSpider
                   x=> x.Get("userProfileIdentifier")?.GetString()+string.Empty,
                   x=>mvpSingleApiUrl + x.Get("userProfileIdentifier")?.GetString()
                 );
-
             foreach (var url in UrlList)
             {
                 var MVPDetail = await VisitOnePage(url.Key, url.Value);
                 mvpDetails.Add(MVPDetail);
             }
             new ExcelMapper().Save("mvp_china.xlsx", mvpDetails, "MVPs");
+        }
+        [Test]
+        public async Task GetMVPDetailListAndSaveToExcel_Global()
+        {
+            var body = new MVPSearchBody("MVP", null, 4000);
+            var request = await this.APIRequest.PostAsync("/api/CommunityLeaders/search/", new() { DataObject = body });
+            Assert.True(request.Ok);
+            var mvpDetails = new List<MVPDetail>();
+
+            var jsonEle = await request.JsonAsync();
+            var UrlList = jsonEle?.Get("communityLeaderProfiles")?.EnumerateArray().ToDictionary(
+                  x => x.Get("userProfileIdentifier")?.GetString() + string.Empty,
+                  x => mvpSingleApiUrl + x.Get("userProfileIdentifier")?.GetString()
+                );
+
+            foreach (var url in UrlList)
+            {
+                var MVPDetail = await VisitOnePage(url.Key, url.Value);
+                mvpDetails.Add(MVPDetail);
+            }
+            new ExcelMapper().Save("mvp_global.xlsx", mvpDetails, "MVPs");
         }
         private async Task<MVPDetail> VisitOnePage(string mvpguid, string apiUrl)
         {
@@ -256,6 +276,7 @@ namespace MVPSpider
             Assert.True(request.Ok);
             var jsonEle = await request.JsonAsync();
             var node = jsonEle?.Get("userProfile");
+            mvpdetail.Country = node?.Get("addressCountryOrRegionName")?.GetString();
             var category = string.Join(",",node?.Get("awardCategory")?.EnumerateArray().Select(x => x.GetString()).ToArray());
             mvpdetail.Name_En = node?.Get("firstName")?.GetString()+" "+node?.Get("lastName")?.GetString();
             if (node?.Get("localizedFirstName")?.GetString() != null)

@@ -22,6 +22,8 @@ namespace MVPSpider
         public string YearInProgram { get; set; }
         [Column(14)]
         public string Biography { get; set; }
+        [Column(7)]
+        public string Country { get; set; }
 
         [Column(1)]
         public string Name_En { get; set; }
