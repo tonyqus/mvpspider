@@ -46,6 +46,7 @@ namespace MVPSpider
         public string Social_Youtube { get; set; }
         [Column(16)]
         public string Social_Bilibili { get; set; }
-
+        [Column(17)]
+        public string CompanyName { get; set; }
     }
 }

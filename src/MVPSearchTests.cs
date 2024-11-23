@@ -206,6 +206,7 @@ namespace MVPSpider
             Assert.That(mvpIds?.Count, Is.EqualTo(145));
         }
         const string mvpSingleApiUrl = "/api/mvp/UserProfiles/public/";
+        const string rdSingleApiUurl = "/api/rd/UserProfiles/public/";
         [Test]
         public async Task GetMVPDetailListAndSaveToExcel_Taiwan()
         {
@@ -248,6 +249,27 @@ namespace MVPSpider
             new ExcelMapper().Save("mvp_china.xlsx", mvpDetails, "MVPs");
         }
         [Test]
+        public async Task GetRDDetailListAndSaveToExcel_Global()
+        {
+            var body = new MVPSearchBody("RD", null, 300);
+            var request = await this.APIRequest.PostAsync("/api/CommunityLeaders/search/", new() { DataObject = body });
+            Assert.True(request.Ok);
+            var mvpDetails = new List<MVPDetail>();
+
+            var jsonEle = await request.JsonAsync();
+            var UrlList = jsonEle?.Get("communityLeaderProfiles")?.EnumerateArray().ToDictionary(
+                  x => x.Get("userProfileIdentifier")?.GetString() + string.Empty,
+                  x => rdSingleApiUurl + x.Get("userProfileIdentifier")?.GetString()
+                );
+            foreach (var url in UrlList)
+            {
+                var MVPDetail = await VisitOnePage(url.Key, url.Value, true);
+                if (MVPDetail != null)
+                    mvpDetails.Add(MVPDetail);
+            }
+            new ExcelMapper().Save("rd_global.xlsx", mvpDetails, "MVPs");
+        }
+        [Test]
         public async Task GetMVPDetailListAndSaveToExcel_Global()
         {
             var body = new MVPSearchBody("MVP", null, 4000);
@@ -264,81 +286,113 @@ namespace MVPSpider
             foreach (var url in UrlList)
             {
                 var MVPDetail = await VisitOnePage(url.Key, url.Value);
-                mvpDetails.Add(MVPDetail);
+                if(MVPDetail!=null)
+                    mvpDetails.Add(MVPDetail);
             }
             new ExcelMapper().Save("mvp_global.xlsx", mvpDetails, "MVPs");
         }
-        private async Task<MVPDetail> VisitOnePage(string mvpguid, string apiUrl)
+        private async Task<MVPDetail> VisitOnePage(string mvpguid, string apiUrl, bool isRD = false)
         {
             var mvpdetail = new MVPDetail();
-            mvpdetail.Url = "https://mvp.microsoft.com/en-US/mvp/profile/"+mvpguid;
-            var request = await this.APIRequest.GetAsync(apiUrl);
-            Assert.True(request.Ok);
-            var jsonEle = await request.JsonAsync();
-            var node = jsonEle?.Get("userProfile");
-            mvpdetail.Country = node?.Get("addressCountryOrRegionName")?.GetString();
-            var category = string.Join(",",node?.Get("awardCategory")?.EnumerateArray().Select(x => x.GetString()).ToArray());
-            mvpdetail.Name_En = node?.Get("firstName")?.GetString()+" "+node?.Get("lastName")?.GetString();
-            if (node?.Get("localizedFirstName")?.GetString() != null)
+            if (!isRD)
             {
-                mvpdetail.Name_Cn = node?.Get("localizedFirstName")?.GetString() + " " + node?.Get("localizedLastName")?.GetString();
-            }
-
-            mvpdetail.PhotoUrl = node?.Get("profilePictureUrl")?.GetString();
-
-            mvpdetail.Category = string.Join(",", node?.Get("awardCategory")?.EnumerateArray().Select(x=>x.GetString()).ToArray());
-            mvpdetail.TechFocus = string.Join(",", node?.Get("technologyFocusArea")?.EnumerateArray().Select(x => x.GetString()).ToArray());
-            mvpdetail.YearInProgram = node?.Get("yearsInProgram")?.GetInt32().ToString();
-
-            var titleName=node?.Get("titleName")?.GetString();
-            if (titleName.StartsWith("Ms") || titleName.StartsWith("Mrs"))
-            {
-                mvpdetail.Gender = "F";
+                mvpdetail.Url = "https://mvp.microsoft.com/en-US/mvp/profile/" + mvpguid;
             }
             else
             {
-                mvpdetail.Gender = "M";
+                mvpdetail.Url = "https://mvp.microsoft.com/en-US/RD/profile/" + mvpguid;
             }
-            mvpdetail.Biography = node?.Get("biography")?.GetString()?.Replace("\n", "").Trim();
-            var links = node?.Get("userProfileSocialNetwork")?.EnumerateArray().ToList();
-            foreach (var link in links)
+            try
             {
-                var socialNetworkName=  link.Get("socialNetworkName")?.GetString()?.ToLower();
-                switch (socialNetworkName)
+                var request = await this.APIRequest.GetAsync(apiUrl);
+                if (!request.Ok)
                 {
-                    case "github":
-                        mvpdetail.Social_Github = link.Get("socialNetworkImageLink")?.GetString();
-                        break;
-                    case "linkedin":
-                        mvpdetail.Social_Linkedin = link.Get("socialNetworkImageLink")?.GetString();
-                        break;
-                    case "facebook":
-                        mvpdetail.Social_Facebook = link.Get("socialNetworkImageLink")?.GetString();
-                        break;
-                    case "twitter":
-                        mvpdetail.Social_Twitter = link.Get("socialNetworkImageLink")?.GetString();
-                        break;
-                    case "youtube":
-                        mvpdetail.Social_Youtube = link.Get("socialNetworkImageLink")?.GetString();
-                        break;
-                    case "personal website":
-                        mvpdetail.Social_Blog = link.Get("socialNetworkImageLink")?.GetString();
-                        break;
-                    case "other":
-                        var url = link.Get("socialNetworkImageLink")?.GetString();
-                        if (url.Contains("bilibili.com"))
-                        {
-                            mvpdetail.Social_Bilibili = url;
-                        }
-                        else if(url.Contains("cnblogs.com")&&mvpdetail.Social_Blog==null)
-                        {
-                            mvpdetail.Social_Blog = url;
-                        }
-                        break;
+                    return null;
+                }
+
+                var jsonEle = await request.JsonAsync();
+                var node = jsonEle?.Get("userProfile");
+                mvpdetail.Country = node?.Get("addressCountryOrRegionName")?.GetString();
+                mvpdetail.Name_En = node?.Get("firstName")?.GetString() + " " + node?.Get("lastName")?.GetString();
+                if (node?.Get("localizedFirstName")?.GetString() != null)
+                {
+                    mvpdetail.Name_Cn = node?.Get("localizedFirstName")?.GetString() + " " + node?.Get("localizedLastName")?.GetString();
+                }
+
+                mvpdetail.PhotoUrl = node?.Get("profilePictureUrl")?.GetString();
+
+                if (!isRD)
+                {
+                    mvpdetail.Category = string.Join(",", node?.Get("awardCategory")?.EnumerateArray().Select(x => x.GetString()).ToArray());
+                }
+                if (!isRD)
+                {
+                    mvpdetail.TechFocus = string.Join(",", node?.Get("technologyFocusArea")?.EnumerateArray().Select(x => x.GetString()).ToArray());
+                }
+                else
+                {
+                    mvpdetail.TechFocus = string.Join(",", node?.Get("technicalExpertise")?.EnumerateArray().Select(x => x.GetString()).ToArray());
+                }
+                mvpdetail.YearInProgram = node?.Get("yearsInProgram")?.GetInt32().ToString();
+
+                var titleName = node?.Get("titleName")?.GetString();
+                if (titleName != null)
+                {
+                    if (titleName.StartsWith("Ms") || titleName.StartsWith("Mrs"))
+                    {
+                        mvpdetail.Gender = "F";
+                    }
+                    else
+                    {
+                        mvpdetail.Gender = "M";
+                    }
+                }
+                mvpdetail.CompanyName = node?.Get("companyName")?.GetString();
+                mvpdetail.Biography = node?.Get("biography")?.GetString()?.Replace("\n", "").Trim();
+                var links = node?.Get("userProfileSocialNetwork")?.EnumerateArray().ToList();
+                foreach (var link in links)
+                {
+                    var socialNetworkName = link.Get("socialNetworkName")?.GetString()?.ToLower();
+                    switch (socialNetworkName)
+                    {
+                        case "github":
+                            mvpdetail.Social_Github = link.Get("socialNetworkImageLink")?.GetString();
+                            break;
+                        case "linkedin":
+                            mvpdetail.Social_Linkedin = link.Get("socialNetworkImageLink")?.GetString();
+                            break;
+                        case "facebook":
+                            mvpdetail.Social_Facebook = link.Get("socialNetworkImageLink")?.GetString();
+                            break;
+                        case "twitter":
+                            mvpdetail.Social_Twitter = link.Get("socialNetworkImageLink")?.GetString();
+                            break;
+                        case "youtube":
+                            mvpdetail.Social_Youtube = link.Get("socialNetworkImageLink")?.GetString();
+                            break;
+                        case "personal website":
+                            mvpdetail.Social_Blog = link.Get("socialNetworkImageLink")?.GetString();
+                            break;
+                        case "other":
+                            var url = link.Get("socialNetworkImageLink")?.GetString();
+                            if (url.Contains("bilibili.com"))
+                            {
+                                mvpdetail.Social_Bilibili = url;
+                            }
+                            else if (url.Contains("cnblogs.com") && mvpdetail.Social_Blog == null)
+                            {
+                                mvpdetail.Social_Blog = url;
+                            }
+                            break;
+                    }
                 }
             }
-
+            catch (PlaywrightException)
+            {
+                return null;
+            }
             return mvpdetail;
+
         }
         [TearDown]
         public async Task TearDownAPITesting()
