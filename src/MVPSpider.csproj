@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ExcelMapper" Version="5.2.593" />
+    <PackageReference Include="ExcelMapper" Version="5.2.594" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageReference Include="Microsoft.Playwright.NUnit" Version="1.35.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
